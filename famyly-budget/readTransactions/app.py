@@ -8,7 +8,11 @@ import base64
 def lambda_handler(event, context):
     # Verifica si el archivo ha sido subido
     if "body" not in event:
-        return {"statusCode": 400, "body": json.dumps({"error": "No file uploaded"})}
+        return {
+            "statusCode": 400,
+            "headers": {"Content-Type": "application/json"},
+            "body": json.dumps({"error": "No file uploaded"}),
+        }
 
     # Verifica si hay un archivo adjunto
     content_type = event["headers"].get("Content-Type", "")
@@ -18,6 +22,7 @@ def lambda_handler(event, context):
     if "multipart/form-data" not in content_type:
         return {
             "statusCode": 400,
+            "headers": {"Content-Type": "application/json"},
             "body": json.dumps({"error": "Invalid content type"}),
         }
 
@@ -47,9 +52,20 @@ def lambda_handler(event, context):
 
         # Convierte el dataframe a JSON
         df = pd.read_excel(file_data, engine="openpyxl")
+        if 'Fecha' in df.columns:
+            df['Fecha'] = pd.to_datetime(df['Fecha'], format='%d/%m/%Y')  # Convierte la columna a formato datetime
+            df['Fecha'] = df['Fecha'].dt.strftime('%Y/%m/%d')  # Reformatea a 'YYYY/MM/DD'
+        df.fillna(0, inplace=True)
         result = df.to_dict(orient="records")
-
-        return {"statusCode": 200, "body": json.dumps(result)}
+        return {
+            "statusCode": 200,
+            "headers": {"Content-Type": "application/json"},
+            "body": json.dumps({"data":result}),
+        }
 
     except Exception as e:
-        return {"statusCode": 500, "body": json.dumps({"error": str(e)})}
+        return {
+            "statusCode": 500,
+            "headers": {"Content-Type": "application/json"},
+            "body": json.dumps({"error": str(e)}),
+        }
