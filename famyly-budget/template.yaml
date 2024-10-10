@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: |
   famyly-budget
@@ -21,20 +21,35 @@ Resources:
         - ${ResourceName} From Stack ${AWS::StackName}
         - ResourceName: Api
       StageName: Prod
-      DefinitionBody:
-        openapi: '3.0'
-        info: {}
-        paths:
-          /readTransactions:
-            post:
-              responses: {}
+      MethodSettings:
+        - HttpMethod: "*"
+          LoggingLevel: INFO
+          ResourcePath: "/*"
+          MetricsEnabled: true
+          DataTraceEnabled: false
+          ThrottlingRateLimit: 50
+          ThrottlingBurstLimit: 25
+      BinaryMediaTypes:
+        - "application/octet-stream"
+        - "multipart/form-data"
+      # DefinitionBody:
+      #   openapi: "3.0"
+      #   info: {}
+      #   paths:
+      #     /readTransactions:
+      #       post:
+      #         x-amazon-apigateway-integration:
+      #           httpMethod: POST
+      #           type: aws_proxy
+      #           uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ReadTransactions.Arn}/invocations
+      #         responses: {}
       EndpointConfiguration: REGIONAL
       TracingEnabled: true
       Cors:
-        AllowOrigin: '''*'''
-        AllowMethods: '''GET,OPTIONS'''
-        MaxAge: 5
-  readTransactions:
+        AllowOrigin: "'*'"
+        AllowMethods: "'POST, GET'"
+        MaxAge: "'600'"
+  ReadTransactions:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       CodeUri: readTransactions/
@@ -42,17 +57,21 @@ Resources:
       Runtime: python3.9
       MemorySize: 3008
       Timeout: 30
+      Events:
+        ApiPOSTreadTransactions:
+          Type: Api
+          Properties:
+            Path: /readTransactions
+            Method: POST
+            RestApiId: !Ref Api
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
   # Find out more about other implicit resources you can reference within SAM
   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-  HelloWorldApi:
-    Description: API Gateway endpoint URL for Prod stage for Hello World function
-    Value: !Sub https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/
   HelloWorldFunction:
     Description: Hello World Lambda Function ARN
-    Value: !GetAtt readTransactions.Arn
-  HelloWorldFunctionIamRole:
+    Value: !GetAtt ReadTransactions.Arn
+  ReadTransactionsFunctionIamRole:
     Description: Implicit IAM Role created for Hello World function
-    Value: !GetAtt HelloWorldFunctionRole.Arn
+    Value: !GetAtt ReadTransactions.Arn

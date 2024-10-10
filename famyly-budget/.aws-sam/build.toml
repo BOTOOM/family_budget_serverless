@@ -5,9 +5,9 @@ codeuri = "/home/botom/Projects/Personal/family budget/serverless/famyly-budget/
 runtime = "python3.9"
 architecture = "x86_64"
 handler = "app.lambda_handler"
-source_hash = "a7e7311e968e0f7702a0490772fb8442ad6e64486bc796d9d5c2a6e2e7efc886"
+source_hash = "0ca7fe4c8cc3a91951087ecc1403a2bd8d3085f47e5d3658fd6a05f5677cf5e8"
 manifest_hash = ""
 packagetype = "Zip"
-functions = ["readTransactions"]
+functions = ["ReadTransactions"]
 
 [layer_build_definitions]
